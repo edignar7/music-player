@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>✨ Vibe Quote Spinner</title>
+<meta name="description" content="Spin the wheel, get inspired! Daily quotes from legends.">
+<meta name="theme-color" content="#1a0533">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎡</text></svg>">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+<!-- Netlify _redirects: /*  /index.html  200 -->
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--neon:#a855f7;--neon2:#06b6d4;--bg1:#1a0533;--bg2:#0a1628;--glass:rgba(255,255,255,.08)}
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));min-height:100vh;color:#fff;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.app{max-width:480px;margin:0 auto;padding:16px;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+h1{font-size:1.6rem;font-weight:900;text-align:center;margin:12px 0 4px;background:linear-gradient(90deg,#a855f7,#06b6d4,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{font-size:.75rem;opacity:.6;margin-bottom:10px;text-align:center}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+.tab{padding:8px 14px;border-radius:20px;border:1.5px solid rgba(168,85,247,.3);background:var(--glass);backdrop-filter:blur(10px);color:#ccc;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .3s;font-family:inherit}
+.tab.active{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border-color:#a855f7;box-shadow:0 0 20px rgba(168,85,247,.4)}
+.tab:hover{transform:scale(1.05)}
+.wheel-wrap{position:relative;margin:10px 0;perspective:800px}
+.wheel-inner{transition:transform .3s;transform-style:preserve-3d}
+.wheel-wrap:hover .wheel-inner{transform:rotateX(5deg) rotateY(-5deg)}
+canvas{display:block;filter:drop-shadow(0 0 30px rgba(168,85,247,.3));border-radius:50%}
+.center-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a0533,#2d1b69);border:3px solid rgba(168,85,247,.6);display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 0 20px rgba(168,85,247,.5);pointer-events:none}
+.pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:28px solid #a855f7;filter:drop-shadow(0 0 8px #a855f7);z-index:2}
+.spin-btn{width:100%;max-width:320px;padding:16px;border:none;border-radius:16px;background:linear-gradient(135deg,#a855f7,#7c3aed,#6d28d9);color:#fff;font-size:1.2rem;font-weight:900;font-family:inherit;cursor:pointer;margin:14px 0;transition:all .3s;box-shadow:0 4px 25px rgba(168,85,247,.4);letter-spacing:1px;position:relative;overflow:hidden}
+.spin-btn:hover{transform:translateY(-2px);box-shadow:0 6px 35px rgba(168,85,247,.6)}
+.spin-btn:active{transform:scale(.97)}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.spin-btn::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,.1),transparent);transform:rotate(45deg);transition:all .5s}
+.spin-btn:hover::after{left:100%}
+.quote-box{width:100%;background:var(--glass);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;margin:12px 0;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transition:all .5s;opacity:0;transform:translateY(10px)}
+.quote-box.show{opacity:1;transform:translateY(0)}
+.quote-text{font-size:1rem;font-weight:600;line-height:1.5;margin-bottom:8px}
+.quote-author{font-size:.8rem;opacity:.7;font-style:italic}
+.quote-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+.q-btn{padding:6px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-size:.7rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.q-btn:hover{background:rgba(168,85,247,.3);border-color:#a855f7}
+.stats{display:flex;gap:12px;margin:8px 0;flex-wrap:wrap;justify-content:center}
+.stat{background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 16px;text-align:center;font-size:.7rem}
+.stat span{display:block;font-size:1.1rem;font-weight:700}
+.favs-section{width:100%;margin-top:auto;padding-top:12px}
+.favs-title{font-size:.85rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.fav-item{background:var(--glass);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:6px;font-size:.72rem;line-height:1.4;position:relative;cursor:pointer;transition:all .2s}
+.fav-item:hover{border-color:rgba(168,85,247,.3)}
+.fav-del{position:absolute;top:6px;right:8px;background:none;border:none;color:#f87171;cursor:pointer;font-size:.85rem;opacity:.6}
+.fav-del:hover{opacity:1}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;padding:10px 24px;border-radius:30px;font-size:.8rem;font-weight:600;z-index:999;transition:transform .4s cubic-bezier(.175,.885,.32,1.275);pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+#confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:998}
+.install-btn{position:fixed;top:12px;right:12px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);color:#fff;padding:6px 12px;border-radius:10px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:inherit;display:none;z-index:10}
+@media(min-width:500px){h1{font-size:2rem}.quote-text{font-size:1.15rem}}
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+<div class="toast" id="toast"></div>
+<button class="install-btn" id="installBtn" onclick="installPWA()">📲 Install App</button>
+
+<div class="app">
+  <h1>🎡 Vibe Quote Spinner</h1>
+  <p class="subtitle">Spin → Get Inspired → Share the Vibes ✨</p>
+
+  <div class="stats">
+    <div class="stat">🔥 Streak<span id="streak">0</span></div>
+    <div class="stat">🎰 Spins<span id="totalSpins">0</span></div>
+    <div class="stat">💜 Saved<span id="favCount">0</span></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-cat="motivation" onclick="switchTab(this)">🚀 Daily Motivation</button>
+    <button class="tab" data-cat="wisdom" onclick="switchTab(this)">🧠 Deep Wisdom</button>
+    <button class="tab" data-cat="hustle" onclick="switchTab(this)">💪 Hustle Vibes</button>
+  </div>
+
+  <div class="wheel-wrap">
+    <div class="pointer"></div>
+    <div class="wheel-inner">
+      <canvas id="wheel" width="310" height="310"></canvas>
+    </div>
+    <div class="center-dot">🎯</div>
+  </div>
+
+  <button class="spin-btn" id="spinBtn" onclick="spin()">🎰 SPIN THE WHEEL</button>
+
+  <div class="quote-box" id="quoteBox">
+    <div class="quote-text" id="quoteText">Tap SPIN to get your vibe! ✨</div>
+    <div class="quote-author" id="quoteAuthor"></div>
+    <div class="quote-actions" id="quoteActions" style="display:none">
+      <button class="q-btn" onclick="copyQuote()">📋 Copy</button>
+      <button class="q-btn" onclick="shareWhatsApp()">💬 WhatsApp</button>
+      <button class="q-btn" onclick="saveFav()">💜 Save</button>
+      <button class="q-btn" onclick="shareTwitter()">🐦 Tweet</button>
+    </div>
+  </div>
+
+  <div class="favs-section">
+    <div class="favs-title"><span>💜 Saved Quotes</span><span id="favToggle" style="cursor:pointer;font-size:.75rem" onclick="toggleFavs()">Show ▼</span></div>
+    <div id="favList" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// === QUOTES DATABASE (60+) ===
+const Q={
+motivation:[
+{t:"The only way to do great work is to love what you do.",a:"Steve Jobs"},{t:"Believe you can and you're halfway there.",a:"Theodore Roosevelt"},
+{t:"You are never too old to set another goal or to dream a new dream.",a:"C.S. Lewis"},{t:"It always seems impossible until it's done.",a:"Nelson Mandela"},
+{t:"The future belongs to those who believe in the beauty of their dreams.",a:"Eleanor Roosevelt"},{t:"In the middle of every difficulty lies opportunity.",a:"Albert Einstein"},
+{t:"What you get by achieving your goals is not as important as what you become.",a:"Zig Ziglar"},{t:"Act as if what you do makes a difference. It does.",a:"William James"},
+{t:"Success is not final, failure is not fatal: it is the courage to continue that counts.",a:"Winston Churchill"},{t:"You miss 100% of the shots you don't take.",a:"Wayne Gretzky"},
+{t:"The best time to plant a tree was 20 years ago. The second best time is now.",a:"Chinese Proverb"},{t:"Your limitation—it's only your imagination.",a:"Unknown"},
+{t:"Don't watch the clock; do what it does. Keep going.",a:"Sam Levenson"},{t:"Everything you've ever wanted is on the other side of fear.",a:"George Addair"},
+{t:"Dream big and dare to fail.",a:"Norman Vaughan"},{t:"What lies behind us and what lies before us are tiny matters compared to what lies within us.",a:"Ralph Waldo Emerson"},
+{t:"I have not failed. I've just found 10,000 ways that won't work.",a:"Thomas Edison"},{t:"The only impossible journey is the one you never begin.",a:"Tony Robbins"},
+{t:"You define your own life. Don't let other people write your script.",a:"Oprah Winfrey"},{t:"If you want to lift yourself up, lift up someone else.",a:"Booker T. Washington"},
+{t:"Turn your wounds into wisdom.",a:"Oprah Winfrey"},{t:"Life is 10% what happens to you and 90% how you react to it.",a:"Charles R. Swindoll"},
+],
+wisdom:[
+{t:"The only true wisdom is in knowing you know nothing.",a:"Socrates"},{t:"The wound is the place where the Light enters you.",a:"Rumi"},
+{t:"Knowing yourself is the beginning of all wisdom.",a:"Aristotle"},{t:"Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.",a:"Rumi"},
+{t:"The mind is everything. What you think you become.",a:"Buddha"},{t:"Happiness is not something ready-made. It comes from your own actions.",a:"Dalai Lama"},
+{t:"We suffer more often in imagination than in reality.",a:"Seneca"},{t:"He who has a why to live can bear almost any how.",a:"Friedrich Nietzsche"},
+{t:"The unexamined life is not worth living.",a:"Socrates"},{t:"Out beyond ideas of wrongdoing and rightdoing there is a field. I'll meet you there.",a:"Rumi"},
+{t:"When you realize nothing is lacking, the whole world belongs to you.",a:"Lao Tzu"},{t:"The obstacle is the way.",a:"Marcus Aurelius"},
+{t:"Not all those who wander are lost.",a:"J.R.R. Tolkien"},{t:"What we think, we become.",a:"Buddha"},
+{t:"The only way to deal with this life meaningfully is to find one's passion and put everything into it.",a:"Alan Watts"},
+{t:"Be yourself; everyone else is already taken.",a:"Oscar Wilde"},{t:"To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.",a:"Ralph Waldo Emerson"},
+{t:"No one can make you feel inferior without your consent.",a:"Eleanor Roosevelt"},{t:"Silence is a source of great strength.",a:"Lao Tzu"},
+{t:"The soul becomes dyed with the color of its thoughts.",a:"Marcus Aurelius"},{t:"Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",a:"Buddha"},
+{t:"What you seek is seeking you.",a:"Rumi"},
+],
+hustle:[
+{t:"I didn't get there by wishing for it or hoping for it, but by working for it.",a:"Estée Lauder"},{t:"The way to get started is to quit talking and begin doing.",a:"Walt Disney"},
+{t:"Don't be afraid to give up the good to go for the great.",a:"John D. Rockefeller"},{t:"I never dreamed about success. I worked for it.",a:"Estée Lauder"},
+{t:"Opportunities don't happen. You create them.",a:"Chris Grosser"},{t:"It's not about ideas. It's about making ideas happen.",a:"Scott Belsky"},
+{t:"The harder you work for something, the greater you'll feel when you achieve it.",a:"Unknown"},{t:"Don't stop when you're tired. Stop when you're done.",a:"Unknown"},
+{t:"Wake up with determination. Go to bed with satisfaction.",a:"Unknown"},{t:"Stay hungry, stay foolish.",a:"Steve Jobs"},
+{t:"The biggest risk is not taking any risk.",a:"Mark Zuckerberg"},{t:"Move fast and break things.",a:"Mark Zuckerberg"},
+{t:"Your time is limited, don't waste it living someone else's life.",a:"Steve Jobs"},{t:"If you're offered a seat on a rocket ship, don't ask what seat. Just get on.",a:"Sheryl Sandberg"},
+{t:"Done is better than perfect.",a:"Sheryl Sandberg"},{t:"The best revenge is massive success.",a:"Frank Sinatra"},
+{t:"I find that the harder I work, the more luck I seem to have.",a:"Thomas Jefferson"},{t:"There are no shortcuts to any place worth going.",a:"Beverly Sills"},
+{t:"Success usually comes to those who are too busy to be looking for it.",a:"Henry David Thoreau"},{t:"If you really look closely, most overnight successes took a long time.",a:"Steve Jobs"},
+{t:"Work like there is someone working 24 hours a day to take it all away from you.",a:"Mark Cuban"},{t:"Hustle in silence and let your success make the noise.",a:"Unknown"},
+]};
+
+const COLORS=['#a855f7','#06b6d4','#f472b6','#facc15','#34d399','#f97316','#818cf8','#fb7185'];
+const EMOJIS=['✨','🔥','💫','🌟','⚡','🎯','💎','🚀'];
+
+let currentCat='motivation', currentQuotes=[], wheelQuotes=[], angle=0, spinning=false, lastQuote=null;
+let audioCtx=null;
+
+// === STORAGE ===
+const store={
+  get:(k,d)=>{try{return JSON.parse(localStorage.getItem('vqs_'+k))||d}catch{return d}},
+  set:(k,v)=>localStorage.setItem('vqs_'+k,JSON.stringify(v))
+};
+
+function updateStats(){
+  const s=store.get('streak',0),t=store.get('spins',0),f=store.get('favs',[]);
+  document.getElementById('streak').textContent=s;
+  document.getElementById('totalSpins').textContent=t;
+  document.getElementById('favCount').textContent=f.length;
+}
+
+function checkStreak(){
+  const today=new Date().toDateString(),last=store.get('lastSpin','');
+  if(last===today)return;
+  const y=new Date();y.setDate(y.getDate()-1);
+  store.set('streak',last===y.toDateString()?store.get('streak',0)+1:1);
+  store.set('lastSpin',today);
+}
+
+// === WHEEL ===
+function pickWheelQuotes(){
+  const pool=[...Q[currentCat]];
+  const picks=[];
+  for(let i=0;i<8;i++){
+    const idx=Math.floor(Math.random()*pool.length);
+    picks.push(pool.splice(idx,1)[0]||Q[currentCat][i]);
+  }
+  return picks;
+}
+
+function drawWheel(rot=0){
+  const c=document.getElementById('wheel'),ctx=c.getContext('2d');
+  const cx=155,cy=155,r=148,seg=Math.PI*2/8;
+  ctx.clearRect(0,0,310,310);
+
+  // outer glow
+  ctx.save();ctx.shadowColor='rgba(168,85,247,.3)';ctx.shadowBlur=30;
+  ctx.beginPath();ctx.arc(cx,cy,r+3,0,Math.PI*2);ctx.fillStyle='rgba(168,85,247,.1)';ctx.fill();ctx.restore();
+
+  for(let i=0;i<8;i++){
+    const a=rot+i*seg;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,a,a+seg);ctx.closePath();
+    const g=ctx.createRadialGradient(cx,cy,20,cx,cy,r);
+    g.addColorStop(0,'rgba(255,255,255,.08)');g.addColorStop(1,COLORS[i]+'cc');
+    ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1.5;ctx.stroke();
+
+    // text
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(a+seg/2);
+    ctx.fillStyle='#fff';ctx.font='bold 18px Poppins';ctx.textAlign='center';
+    ctx.fillText(EMOJIS[i],r*0.6,6);
+    ctx.restore();
+  }
+
+  // inner ring
+  ctx.beginPath();ctx.arc(cx,cy,30,0,Math.PI*2);
+  ctx.fillStyle='rgba(26,5,51,.9)';ctx.fill();
+  ctx.strokeStyle='rgba(168,85,247,.5)';ctx.lineWidth=2;ctx.stroke();
+}
+
+// === SPIN ===
+function spin(){
+  if(spinning)return;
+  spinning=true;
+  document.getElementById('spinBtn').disabled=true;
+
+  wheelQuotes=pickWheelQuotes();
+  const targetIdx=Math.floor(Math.random()*8);
+  const seg=Math.PI*2/8;
+  // point to top → segment index
+  const targetAngle=Math.PI*2*4+(Math.PI*2-targetIdx*seg-seg/2)-Math.PI/2;
+  const startAngle=angle;
+  const totalRot=targetAngle-startAngle;
+  const duration=2500;
+  const start=performance.now();
+
+  function easeOut(t){return 1-Math.pow(1-t,4)}
+
+  function animate(now){
+    const elapsed=now-start;
+    const progress=Math.min(elapsed/duration,1);
+    const eased=easeOut(progress);
+    angle=startAngle+totalRot*eased;
+    drawWheel(angle);
+
+    // tick sound near end
+    if(progress>.5&&progress<1&&Math.random()>.7)playTick();
+
+    if(progress<1){requestAnimationFrame(animate)}
+    else{
+      spinning=false;
+      document.getElementById('spinBtn').disabled=false;
+      lastQuote=wheelQuotes[targetIdx];
+      showQuote(lastQuote);
+      fireConfetti();
+      playWin();
+      checkStreak();
+      store.set('spins',store.get('spins',0)+1);
+      updateStats();
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function showQuote(q){
+  const box=document.getElementById('quoteBox');
+  document.getElementById('quoteText').textContent=`"${q.t}"`;
+  document.getElementById('quoteAuthor').textContent=`— ${q.a}`;
+  document.getElementById('quoteActions').style.display='flex';
+  box.classList.remove('show');
+  setTimeout(()=>box.classList.add('show'),50);
+}
+
+// === AUDIO ===
+function getAudioCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}
+function playTick(){
+  try{const x=getAudioCtx(),o=x.createOscillator(),g=x.createGain();o.connect(g);g.connect(x.destination);o.frequency.value=800+Math.random()*400;g.gain.value=.03;o.start();o.stop(x.currentTime+.03)}catch{}
+}
+function playWin(){
+  try{const x=getAudioCtx();[523,659,784].forEach((f,i)=>{const o=x.createOscillator(),g=x.createGain();o.connect(g);g.connect(x.destination);o.frequency.value=f;g.gain.setValueAtTime(.08,x.currentTime+i*.12);g.gain.exponentialRampToValueAtTime(.001,x.currentTime+i*.12+.4);o.start(x.currentTime+i*.12);o.stop(x.currentTime+i*.12+.4)})}catch{}
+}
+
+// === CONFETTI ===
+function fireConfetti(){
+  const c=document.getElementById('confetti-canvas'),ctx=c.getContext('2d');
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  const particles=[];
+  for(let i=0;i<80;i++)particles.push({x:c.width/2,y:c.height/2,vx:(Math.random()-.5)*16,vy:Math.random()*-14-4,size:Math.random()*6+3,color:COLORS[Math.floor(Math.random()*8)],rot:Math.random()*360,life:1});
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    let alive=false;
+    particles.forEach(p=>{
+      if(p.life<=0)return;alive=true;
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.35;p.rot+=5;p.life-=.012;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.color;ctx.globalAlpha=p.life;
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+      ctx.restore();
+    });
+    if(alive)requestAnimationFrame(draw);else ctx.clearRect(0,0,c.width,c.height);
+  }
+  draw();
+}
+
+// === ACTIONS ===
+function formatQuote(){return lastQuote?`✨ "${lastQuote.t}"\n— ${lastQuote.a} 🎯\n\n🎡 vibes via Vibe Quote Spinner`:'';}
+
+function copyQuote(){
+  if(!lastQuote)return;
+  navigator.clipboard.writeText(formatQuote()).then(()=>toast('📋 Copied! Share the vibes!')).catch(()=>toast('⚠️ Copy failed'));
+}
+function shareWhatsApp(){if(lastQuote)window.open('https://wa.me/?text='+encodeURIComponent(formatQuote()),'_blank')}
+function shareTwitter(){if(lastQuote)window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(formatQuote()),'_blank')}
+
+function saveFav(){
+  if(!lastQuote)return;
+  const favs=store.get('favs',[]);
+  if(favs.find(f=>f.t===lastQuote.t)){toast('Already saved! 💜');return}
+  favs.unshift({...lastQuote,ts:Date.now()});
+  store.set('favs',favs);updateStats();renderFavs();toast('💜 Saved to favorites!');
+}
+
+function renderFavs(){
+  const favs=store.get('favs',[]),el=document.getElementById('favList');
+  if(!favs.length){el.innerHTML='<p style="font-size:.72rem;opacity:.4;padding:8px">No saved quotes yet. Spin and save! 🎰</p>';return}
+  el.innerHTML=favs.map((f,i)=>`<div class="fav-item" onclick="navigator.clipboard.writeText('✨ \\'${f.t}\\' — ${f.a}');document.getElementById('toast').textContent='📋 Copied!';document.getElementById('toast').classList.add('show');setTimeout(()=>document.getElementById('toast').classList.remove('show'),1800)">
+    <div>"${f.t}"</div><div style="opacity:.6;margin-top:4px">— ${f.a}</div>
+    <button class="fav-del" onclick="event.stopPropagation();delFav(${i})">✕</button></div>`).join('');
+}
+function delFav(i){const f=store.get('favs',[]);f.splice(i,1);store.set('favs',f);updateStats();renderFavs();toast('Removed 🗑️')}
+function toggleFavs(){
+  const el=document.getElementById('favList'),t=document.getElementById('favToggle');
+  const show=el.style.display==='none';
+  el.style.display=show?'block':'none';t.textContent=show?'Hide ▲':'Show ▼';
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// === TABS ===
+function switchTab(btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');currentCat=btn.dataset.cat;
+  wheelQuotes=pickWheelQuotes();drawWheel(angle);
+  document.getElementById('quoteBox').classList.remove('show');
+  document.getElementById('quoteActions').style.display='none';
+  document.getElementById('quoteText').textContent='Tap SPIN to get your vibe! ✨';
+  document.getElementById('quoteAuthor').textContent='';
+}
+
+// === PWA ===
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='block'});
+function installPWA(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('installBtn').style.display='none'})}}
+
+// === INIT ===
+wheelQuotes=pickWheelQuotes();drawWheel(0);updateStats();renderFavs();
+document.getElementById('quoteBox').classList.add('show');
+
+// Register SW
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
